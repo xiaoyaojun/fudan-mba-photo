@@ -1,0 +1,1277 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>复旦MBA摄影协会 | Fudan MBA Photography Club</title>
+  
+  <!-- Fonts: Archivo + Space Grotesk -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@300;400;500;600;700&family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  
+  <!-- GSAP for Animations -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+  
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: '#18181B',
+            secondary: '#27272A',
+            cta: '#F8FAFC',
+            background: '#FAFAFA',
+            text: '#09090B',
+            accent: '#E4E4E7',
+            gold: '#D4AF37',
+            'gold-light': '#F4E4BC',
+          },
+          fontFamily: {
+            archivo: ['Archivo', 'sans-serif'],
+            space: ['Space Grotesk', 'sans-serif'],
+          },
+        }
+      }
+    }
+  </script>
+  
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: 'Archivo', sans-serif;
+      background: #FAFAFA;
+      overflow-x: hidden;
+    }
+    
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar {
+      width: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #18181B;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #D4AF37;
+      border-radius: 4px;
+    }
+    
+    /* Noise Texture Overlay */
+    .noise-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 9999;
+      opacity: 0.03;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+    }
+    
+    /* Hero Parallax Layers */
+    .parallax-layer {
+      will-change: transform;
+    }
+    
+    /* Gallery Card Hover Effect */
+    .gallery-card {
+      position: relative;
+      overflow: hidden;
+      cursor: pointer;
+    }
+    
+    .gallery-card img {
+      transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    .gallery-card:hover img {
+      transform: scale(1.05);
+    }
+    
+    .gallery-card .overlay {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(to top, rgba(24,24,27,0.95) 0%, rgba(24,24,27,0.3) 50%, transparent 100%);
+      opacity: 0;
+      transition: opacity 0.4s ease;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      padding: 1.5rem;
+    }
+    
+    .gallery-card:hover .overlay {
+      opacity: 1;
+    }
+    
+    .gallery-card .overlay-content {
+      transform: translateY(20px);
+      transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    .gallery-card:hover .overlay-content {
+      transform: translateY(0);
+    }
+    
+    /* Featured Badge */
+    .featured-badge {
+      position: absolute;
+      top: 1rem;
+      right: 1rem;
+      background: linear-gradient(135deg, #D4AF37 0%, #F4E4BC 100%);
+      color: #18181B;
+      padding: 0.5rem 1rem;
+      font-family: 'Space Grotesk', sans-serif;
+      font-weight: 600;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      z-index: 10;
+    }
+    
+    /* Navigation */
+    .nav-floating {
+      backdrop-filter: blur(20px);
+      background: rgba(24, 24, 27, 0.8);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    /* Button Styles */
+    .btn-primary {
+      background: #18181B;
+      color: #F8FAFC;
+      padding: 1rem 2rem;
+      font-family: 'Space Grotesk', sans-serif;
+      font-weight: 500;
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .btn-primary::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+      transition: left 0.5s ease;
+    }
+    
+    .btn-primary:hover::before {
+      left: 100%;
+    }
+    
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 30px rgba(24, 24, 27, 0.3);
+    }
+    
+    .btn-gold {
+      background: linear-gradient(135deg, #D4AF37 0%, #F4E4BC 100%);
+      color: #18181B;
+      padding: 1rem 2rem;
+      font-family: 'Space Grotesk', sans-serif;
+      font-weight: 600;
+      transition: all 0.3s ease;
+    }
+    
+    .btn-gold:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 30px rgba(212, 175, 55, 0.4);
+    }
+    
+    /* Text Reveal Animation */
+    .reveal-text {
+      clip-path: polygon(0 0, 100% 0, 100% 100%, 0% 100%);
+    }
+    
+    /* Masonry Grid */
+    .masonry-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+      grid-auto-rows: 10px;
+      gap: 0;
+    }
+    
+    .masonry-item {
+      grid-row: span 25;
+    }
+    
+    .masonry-item.tall {
+      grid-row: span 35;
+    }
+    
+    .masonry-item.wide {
+      grid-column: span 2;
+      grid-row: span 25;
+    }
+    
+    @media (max-width: 768px) {
+      .masonry-grid {
+        grid-template-columns: 1fr;
+      }
+      .masonry-item.wide {
+        grid-column: span 1;
+      }
+    }
+    
+    /* Modal */
+    .modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(9, 9, 11, 0.95);
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+    }
+    
+    .modal.active {
+      opacity: 1;
+      pointer-events: all;
+    }
+    
+    .modal-content {
+      max-width: 90vw;
+      max-height: 90vh;
+      transform: scale(0.9);
+      transition: transform 0.3s ease;
+    }
+    
+    .modal.active .modal-content {
+      transform: scale(1);
+    }
+    
+    /* Loading Skeleton */
+    .skeleton {
+      background: linear-gradient(90deg, #27272A 25%, #3F3F46 50%, #27272A 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.5s infinite;
+    }
+    
+    @keyframes shimmer {
+      0% { background-position: 200% 0; }
+      100% { background-position: -200% 0; }
+    }
+    
+    /* Gold Gradient Text */
+    .text-gold-gradient {
+      background: linear-gradient(135deg, #D4AF37 0%, #F4E4BC 50%, #D4AF37 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    
+    /* Section Divider */
+    .section-divider {
+      height: 1px;
+      background: linear-gradient(90deg, transparent, #D4AF37, transparent);
+      margin: 4rem 0;
+    }
+    
+    /* Like Animation */
+    @keyframes like-bounce {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.3); }
+    }
+    
+    .like-animation {
+      animation: like-bounce 0.3s ease;
+    }
+    
+    /* Scroll Progress */
+    .scroll-progress {
+      position: fixed;
+      top: 0;
+      left: 0;
+      height: 3px;
+      background: linear-gradient(90deg, #D4AF37, #F4E4BC);
+      z-index: 9999;
+      transform-origin: left;
+      transform: scaleX(0);
+    }
+  </style>
+</head>
+<body class="bg-background text-text">
+  <!-- Noise Overlay -->
+  <div class="noise-overlay"></div>
+  
+  <!-- Scroll Progress Bar -->
+  <div class="scroll-progress" id="scrollProgress"></div>
+  
+  <!-- Navigation -->
+  <nav class="nav-floating fixed top-4 left-4 right-4 z-50 rounded-full px-6 py-3">
+    <div class="flex items-center justify-between max-w-7xl mx-auto">
+      <a href="#" class="flex items-center gap-3">
+        <div class="w-10 h-10 bg-gradient-to-br from-gold to-gold-light rounded-full flex items-center justify-center">
+          <i data-lucide="aperture" class="w-5 h-5 text-primary"></i>
+        </div>
+        <span class="font-space font-semibold text-white text-lg tracking-wide">FDU MBA PHOTO</span>
+      </a>
+      
+      <div class="hidden md:flex items-center gap-8">
+        <a href="#gallery" class="text-gray-300 hover:text-white transition-colors font-space text-sm tracking-wider">画廊</a>
+        <a href="#featured" class="text-gray-300 hover:text-white transition-colors font-space text-sm tracking-wider">精选</a>
+        <a href="#members" class="text-gray-300 hover:text-white transition-colors font-space text-sm tracking-wider">会员</a>
+        <a href="#about" class="text-gray-300 hover:text-white transition-colors font-space text-sm tracking-wider">关于</a>
+      </div>
+      
+      <div class="flex items-center gap-4">
+        <button onclick="openModal('uploadModal')" class="hidden md:flex items-center gap-2 btn-gold rounded-full text-sm">
+          <i data-lucide="upload" class="w-4 h-4"></i>
+          上传作品
+        </button>
+        <button onclick="openModal('loginModal')" class="text-white hover:text-gold transition-colors">
+          <i data-lucide="user" class="w-5 h-5"></i>
+        </button>
+        <button class="md:hidden text-white" onclick="toggleMobileMenu()">
+          <i data-lucide="menu" class="w-6 h-6"></i>
+        </button>
+      </div>
+    </div>
+  </nav>
+  
+  <!-- Mobile Menu -->
+  <div id="mobileMenu" class="fixed inset-0 bg-primary z-40 transform translate-x-full transition-transform duration-300 md:hidden">
+    <div class="flex flex-col items-center justify-center h-full gap-8">
+      <a href="#gallery" class="text-white font-space text-2xl" onclick="toggleMobileMenu()">画廊</a>
+      <a href="#featured" class="text-white font-space text-2xl" onclick="toggleMobileMenu()">精选</a>
+      <a href="#members" class="text-white font-space text-2xl" onclick="toggleMobileMenu()">会员</a>
+      <a href="#about" class="text-white font-space text-2xl" onclick="toggleMobileMenu()">关于</a>
+      <button onclick="openModal('uploadModal'); toggleMobileMenu();" class="btn-gold rounded-full mt-4">
+        上传作品
+      </button>
+    </div>
+  </div>
+
+  <!-- Hero Section -->
+  <section class="relative min-h-screen flex items-center justify-center overflow-hidden bg-primary">
+    <!-- Parallax Background Images -->
+    <div class="absolute inset-0 z-0">
+      <div class="parallax-layer absolute inset-0 opacity-30" data-speed="0.2">
+        <img src="https://images.unsplash.com/photo-1493863641943-9b68992a8d07?w=1920&q=80" 
+             alt="Background" 
+             class="w-full h-full object-cover">
+      </div>
+      <div class="absolute inset-0 bg-gradient-to-b from-primary/80 via-primary/60 to-primary"></div>
+    </div>
+    
+    <!-- Floating Photo Elements -->
+    <div class="absolute inset-0 z-0 overflow-hidden pointer-events-none">
+      <div class="parallax-layer absolute top-20 left-10 w-48 h-64 rounded-lg overflow-hidden opacity-40 rotate-6" data-speed="0.5">
+        <img src="https://images.unsplash.com/photo-1516035069371-29a1b244cc32?w=400&q=80" class="w-full h-full object-cover">
+      </div>
+      <div class="parallax-layer absolute top-40 right-20 w-56 h-40 rounded-lg overflow-hidden opacity-30 -rotate-3" data-speed="0.3">
+        <img src="https://images.unsplash.com/photo-1502920917128-1aa500764cbd?w=400&q=80" class="w-full h-full object-cover">
+      </div>
+      <div class="parallax-layer absolute bottom-40 left-1/4 w-40 h-56 rounded-lg overflow-hidden opacity-35 rotate-12" data-speed="0.4">
+        <img src="https://images.unsplash.com/photo-1452587925148-ce544e77e70d?w=400&q=80" class="w-full h-full object-cover">
+      </div>
+    </div>
+    
+    <!-- Hero Content -->
+    <div class="relative z-10 text-center px-4 max-w-5xl mx-auto">
+      <div class="mb-6 overflow-hidden">
+        <p class="hero-subtitle font-space text-gold tracking-[0.3em] text-sm uppercase">Fudan University MBA Photography Club</p>
+      </div>
+      
+      <h1 class="hero-title font-archivo font-bold text-5xl md:text-7xl lg:text-8xl text-white mb-6 leading-tight">
+        <span class="block reveal-text">捕捉光影</span>
+        <span class="block text-gold-gradient reveal-text">定格永恒</span>
+      </h1>
+      
+      <p class="hero-desc font-archivo text-gray-400 text-lg md:text-xl max-w-2xl mx-auto mb-10 leading-relaxed">
+        复旦MBA摄影协会是一个汇聚视觉艺术家的高端社群。<br>
+        在这里，每一张照片都是一个故事，每一次快门都是一次荣耀。
+      </p>
+      
+      <div class="flex flex-col sm:flex-row gap-4 justify-center items-center">
+        <a href="#gallery" class="btn-gold rounded-full flex items-center gap-2">
+          <i data-lucide="images" class="w-5 h-5"></i>
+          探索画廊
+        </a>
+        <button onclick="openModal('registerModal')" class="btn-primary rounded-full border border-white/20">
+          成为会员
+        </button>
+      </div>
+    </div>
+    
+    <!-- Scroll Indicator -->
+    <div class="absolute bottom-8 left-1/2 -translate-x-1/2 z-10">
+      <div class="w-6 h-10 border-2 border-white/30 rounded-full flex justify-center pt-2">
+        <div class="w-1.5 h-3 bg-gold rounded-full animate-bounce"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Featured Section - 协会精选 -->
+  <section id="featured" class="py-24 px-4 bg-primary">
+    <div class="max-w-7xl mx-auto">
+      <div class="text-center mb-16">
+        <p class="font-space text-gold tracking-[0.2em] text-xs uppercase mb-4">Curated by Association</p>
+        <h2 class="font-archivo font-bold text-4xl md:text-5xl text-white mb-4">协会精选</h2>
+        <p class="text-gray-400 font-archivo max-w-xl mx-auto">由协会评委会精心挑选的封面作品、季度佳作与年度大奖</p>
+      </div>
+      
+      <!-- Featured Tabs -->
+      <div class="flex justify-center gap-2 mb-12">
+        <button class="featured-tab active px-6 py-2 rounded-full font-space text-sm transition-all bg-gold text-primary" data-tab="cover">
+          封面作品
+        </button>
+        <button class="featured-tab px-6 py-2 rounded-full font-space text-sm transition-all bg-secondary text-gray-300 hover:text-white" data-tab="quarterly">
+          季度精选
+        </button>
+        <button class="featured-tab px-6 py-2 rounded-full font-space text-sm transition-all bg-secondary text-gray-300 hover:text-white" data-tab="annual">
+          年度大奖
+        </button>
+      </div>
+      
+      <!-- Featured Grid -->
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <!-- Cover Photo - Large -->
+        <div class="lg:col-span-2 lg:row-span-2 gallery-card rounded-2xl overflow-hidden group" onclick="openPhotoModal(this)">
+          <div class="featured-badge">
+            <i data-lucide="crown" class="w-3 h-3 inline mr-1"></i> 年度封面
+          </div>
+          <img src="https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=1200&q=80" 
+               alt="封面作品" 
+               class="w-full h-full object-cover min-h-[500px]">
+          <div class="overlay">
+            <div class="overlay-content">
+              <h3 class="font-archivo font-bold text-2xl text-white mb-2">晨光中的复旦</h3>
+              <p class="font-space text-gold text-sm mb-3">@张明 | 2024年度封面作品</p>
+              <p class="text-gray-300 text-sm line-clamp-2">用镜头捕捉复旦校园在晨曦中的静谧与庄严，光影交织间展现百年学府的厚重与优雅。</p>
+              <div class="flex items-center gap-4 mt-4">
+                <span class="flex items-center gap-1 text-white text-sm">
+                  <i data-lucide="heart" class="w-4 h-4 text-red-500"></i> 2,847
+                </span>
+                <span class="flex items-center gap-1 text-white text-sm">
+                  <i data-lucide="message-circle" class="w-4 h-4"></i> 156
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Quarterly 1 -->
+        <div class="gallery-card rounded-2xl overflow-hidden group" onclick="openPhotoModal(this)">
+          <div class="featured-badge" style="background: linear-gradient(135deg, #C0C0C0, #E8E8E8);">
+            <i data-lucide="award" class="w-3 h-3 inline mr-1"></i> Q4 精选
+          </div>
+          <img src="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=600&q=80" 
+               alt="季度精选" 
+               class="w-full h-64 object-cover">
+          <div class="overlay">
+            <div class="overlay-content">
+              <h3 class="font-archivo font-bold text-lg text-white mb-1">山巅云海</h3>
+              <p class="font-space text-gray-300 text-xs">@李婷</p>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Quarterly 2 -->
+        <div class="gallery-card rounded-2xl overflow-hidden group" onclick="openPhotoModal(this)">
+          <div class="featured-badge" style="background: linear-gradient(135deg, #CD7F32, #E6A366);">
+            <i data-lucide="star" class="w-3 h-3 inline mr-1"></i> Q3 精选
+          </div>
+          <img src="https://images.unsplash.com/photo-1433086966358-54859d0ed716?w=600&q=80" 
+               alt="季度精选" 
+               class="w-full h-64 object-cover">
+          <div class="overlay">
+            <div class="overlay-content">
+              <h3 class="font-archivo font-bold text-lg text-white mb-1">瀑布秘境</h3>
+              <p class="font-space text-gray-300 text-xs">@王浩</p>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Annual Award 1 -->
+        <div class="gallery-card rounded-2xl overflow-hidden group" onclick="openPhotoModal(this)">
+          <img src="https://images.unsplash.com/photo-1518837695005-2083093ee35b?w=600&q=80" 
+               alt="年度作品" 
+               class="w-full h-64 object-cover">
+          <div class="overlay">
+            <div class="overlay-content">
+              <h3 class="font-archivo font-bold text-lg text-white mb-1">城市脉搏</h3>
+              <p class="font-space text-gold text-xs">年度最佳城市摄影</p>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Annual Award 2 -->
+        <div class="gallery-card rounded-2xl overflow-hidden group" onclick="openPhotoModal(this)">
+          <img src="https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?w=600&q=80" 
+               alt="年度作品" 
+               class="w-full h-64 object-cover">
+          <div class="overlay">
+            <div class="overlay-content">
+              <h3 class="font-archivo font-bold text-lg text-white mb-1">雾中山林</h3>
+              <p class="font-space text-gold text-xs">年度最佳风光摄影</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Section Divider -->
+  <div class="section-divider"></div>
+
+  <!-- Gallery Section - 会员画廊 -->
+  <section id="gallery" class="py-24 px-4 bg-primary">
+    <div class="max-w-7xl mx-auto">
+      <div class="flex flex-col md:flex-row md:items-end justify-between mb-12">
+        <div>
+          <p class="font-space text-gold tracking-[0.2em] text-xs uppercase mb-4">Member Gallery</p>
+          <h2 class="font-archivo font-bold text-4xl md:text-5xl text-white">会员画廊</h2>
+        </div>
+        
+        <!-- Filter Buttons -->
+        <div class="flex flex-wrap gap-2 mt-6 md:mt-0">
+          <button class="gallery-filter active px-4 py-2 rounded-full font-space text-xs transition-all bg-gold text-primary" data-filter="all">
+            全部
+          </button>
+          <button class="gallery-filter px-4 py-2 rounded-full font-space text-xs transition-all bg-secondary text-gray-300 hover:text-white" data-filter="landscape">
+            风光
+          </button>
+          <button class="gallery-filter px-4 py-2 rounded-full font-space text-xs transition-all bg-secondary text-gray-300 hover:text-white" data-filter="portrait">
+            人像
+          </button>
+          <button class="gallery-filter px-4 py-2 rounded-full font-space text-xs transition-all bg-secondary text-gray-300 hover:text-white" data-filter="street">
+            街拍
+          </button>
+          <button class="gallery-filter px-4 py-2 rounded-full font-space text-xs transition-all bg-secondary text-gray-300 hover:text-white" data-filter="architecture">
+            建筑
+          </button>
+        </div>
+      </div>
+      
+      <!-- Masonry Gallery Grid -->
+      <div class="masonry-grid" id="galleryGrid">
+        <!-- Photo 1 -->
+        <div class="masonry-item gallery-card rounded-xl overflow-hidden" data-category="landscape" onclick="openPhotoModal(this)">
+          <img src="https://images.unsplash.com/photo-1472214103451-9374bd1c798e?w=600&q=80" 
+               alt="风光摄影" 
+               class="w-full h-full object-cover">
+          <div class="overlay">
+            <div class="overlay-content">
+              <div class="flex items-center gap-2 mb-2">
+                <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&q=80" class="w-8 h-8 rounded-full object-cover">
+                <span class="font-space text-white text-sm">@陈伟</span>
+              </div>
+              <h3 class="font-archivo font-bold text-white">金色黄昏</h3>
+              <div class="flex items-center gap-4 mt-2">
+                <span class="flex items-center gap-1 text-white text-xs">
+                  <i data-lucide="heart" class="w-3 h-3"></i> 328
+                </span>
+                <span class="flex items-center gap-1 text-white text-xs">
+                  <i data-lucide="message-circle" class="w-3 h-3"></i> 24
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Photo 2 -->
+        <div class="masonry-item tall gallery-card rounded-xl overflow-hidden" data-category="portrait" onclick="openPhotoModal(this)">
+          <img src="https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?w=600&q=80" 
+               alt="人像摄影" 
+               class="w-full h-full object-cover">
+          <div class="overlay">
+            <div class="overlay-content">
+              <div class="flex items-center gap-2 mb-2">
+                <img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&q=80" class="w-8 h-8 rounded-full object-cover">
+                <span class="font-space text-white text-sm">@林小雨</span>
+              </div>
+              <h3 class="font-archivo font-bold text-white">光影之间</h3>
+              <div class="flex items-center gap-4 mt-2">
+                <span class="flex items-center gap-1 text-white text-xs">
+                  <i data-lucide="heart" class="w-3 h-3"></i> 521
+                </span>
+                <span class="flex items-center gap-1 text-white text-xs">
+                  <i data-lucide="message-circle" class="w-3 h-3"></i> 47
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Photo 3 -->
+        <div class="masonry-item gallery-card rounded-xl overflow-hidden" data-category="street" onclick="openPhotoModal(this)">
+          <img src="https://images.unsplash.com/photo-1475924156734-496f6cac6ec1?w=600&q=80" 
+               alt="街拍摄影" 
+               class="w-full h-full object-cover">
+          <div class="overlay">
+            <div class="overlay-content">
+              <div class="flex items-center gap-2 mb-2">
+                <img src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&q=80" class="w-8 h-8 rounded-full object-cover">
+                <span class="font-space text-white text-sm">@刘强</span>
+              </div>
+              <h3 class="font-archivo font-bold text-white">雨中漫步</h3>
+              <div class="flex items-center gap-4 mt-2">
+                <span class="flex items-center gap-1 text-white text-xs">
+                  <i data-lucide="heart" class="w-3 h-3"></i> 189
+                </span>
+                <span class="flex items-center gap-1 text-white text-xs">
+                  <i data-lucide="message-circle" class="w-3 h-3"></i> 12
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Photo 4 -->
+        <div class="masonry-item gallery-card rounded-xl overflow-hidden" data-category="architecture" onclick="openPhotoModal(this)">
+          <img src="https://images.unsplash.com/photo-1486325212027-8081e485255e?w=600&q=80" 
+               alt="建筑摄影" 
+               class="w-full h-full object-cover">
+          <div class="overlay">
+            <div class="overlay-content">
+              <div class="flex items-center gap-2 mb-2">
+                <img src="https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100&q=80" class="w-8 h-8 rounded-full object-cover">
+                <span class="font-space text-white text-sm">@周雪</span>
+              </div>
+              <h3 class="font-archivo font-bold text-white">几何之美</h3>
+              <div class="flex items-center gap-4 mt-2">
+                <span class="flex items-center gap-1 text-white text-xs">
+                  <i data-lucide="heart" class="w-3 h-3"></i> 276
+                </span>
+                <span class="flex items-center gap-1 text-white text-xs">
+                  <i data-lucide="message-circle" class="w-3 h-3"></i> 31
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Photo 5 -->
+        <div class="masonry-item tall gallery-card rounded-xl overflow-hidden" data-category="landscape" onclick="openPhotoModal(this)">
+          <img src="https://images.unsplash.com/photo-1501785888041-af3ef285b470?w=600&q=80" 
+               alt="风光摄影" 
+               class="w-full h-full object-cover">
+          <div class="overlay">
+            <div class="overlay-content">
+              <div class="flex items-center gap-2 mb-2">
+                <img src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&q=80" class="w-8 h-8 rounded-full object-cover">
+                <span class="font-space text-white text-sm">@赵明</span>
+              </div>
+              <h3 class="font-archivo font-bold text-white">湖光山色</h3>
+              <div class="flex items-center gap-4 mt-2">
+                <span class="flex items-center gap-1 text-white text-xs">
+                  <i data-lucide="heart" class="w-3 h-3"></i> 412
+                </span>
+                <span class="flex items-center gap-1 text-white text-xs">
+                  <i data-lucide="message-circle" class="w-3 h-3"></i> 38
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Photo 6 -->
+        <div class="masonry-item gallery-card rounded-xl overflow-hidden" data-category="street" onclick="openPhotoModal(this)">
+          <img src="https://images.unsplash.com/photo-1514565131-fce0801e5785?w=600&q=80" 
+               alt="街拍摄影" 
+               class="w-full h-full object-cover">
+          <div class="overlay">
+            <div class="overlay-content">
+              <div class="flex items-center gap-2 mb-2">
+                <img src="https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=100&q=80" class="w-8 h-8 rounded-full object-cover">
+                <span class="font-space text-white text-sm">@孙艺</span>
+              </div>
+              <h3 class="font-archivo font-bold text-white">都市节奏</h3>
+              <div class="flex items-center gap-4 mt-2">
+                <span class="flex items-center gap-1 text-white text-xs">
+                  <i data-lucide="heart" class="w-3 h-3"></i> 298
+                </span>
+                <span class="flex items-center gap-1 text-white text-xs">
+                  <i data-lucide="message-circle" class="w-3 h-3"></i> 19
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Load More -->
+      <div class="text-center mt-12">
+        <button class="btn-primary rounded-full px-8 py-3">
+          加载更多
+          <i data-lucide="chevron-down" class="w-4 h-4 inline ml-2"></i>
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Stats Section -->
+  <section class="py-20 bg-secondary">
+    <div class="max-w-7xl mx-auto px-4">
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-8">
+        <div class="text-center">
+          <div class="font-archivo font-bold text-4xl md:text-5xl text-gold mb-2" data-count="128">0</div>
+          <p class="font-space text-gray-400 text-sm uppercase tracking-wider">注册会员</p>
+        </div>
+        <div class="text-center">
+          <div class="font-archivo font-bold text-4xl md:text-5xl text-gold mb-2" data-count="2847">0</div>
+          <p class="font-space text-gray-400 text-sm uppercase tracking-wider">上传作品</p>
+        </div>
+        <div class="text-center">
+          <div class="font-archivo font-bold text-4xl md:text-5xl text-gold mb-2" data-count="156">0</div>
+          <p class="font-space text-gray-400 text-sm uppercase tracking-wider">精选作品</p>
+        </div>
+        <div class="text-center">
+          <div class="font-archivo font-bold text-4xl md:text-5xl text-gold mb-2" data-count="12">0</div>
+          <p class="font-space text-gray-400 text-sm uppercase tracking-wider">年度活动</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- About Section -->
+  <section id="about" class="py-24 px-4 bg-primary">
+    <div class="max-w-7xl mx-auto">
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+        <div>
+          <p class="font-space text-gold tracking-[0.2em] text-xs uppercase mb-4">About Us</p>
+          <h2 class="font-archivo font-bold text-4xl md:text-5xl text-white mb-6">
+            用镜头<br>讲述故事
+          </h2>
+          <p class="text-gray-400 font-archivo leading-relaxed mb-6">
+            复旦MBA摄影协会成立于2018年，是一个由MBA学生及校友自发组织的视觉艺术社群。
+            我们相信，优秀的摄影作品不仅仅是技术的展示，更是情感与思想的表达。
+          </p>
+          <p class="text-gray-400 font-archivo leading-relaxed mb-8">
+            在这里，无论你是专业摄影师还是摄影爱好者，都能找到志同道合的伙伴。
+            我们定期举办摄影展览、外拍活动、后期工作坊，为每一位会员提供展示才华的舞台。
+          </p>
+          <div class="flex flex-wrap gap-4">
+            <div class="flex items-center gap-2 text-gray-300">
+              <i data-lucide="check-circle" class="w-5 h-5 text-gold"></i>
+              <span class="font-space text-sm">专业评审团</span>
+            </div>
+            <div class="flex items-center gap-2 text-gray-300">
+              <i data-lucide="check-circle" class="w-5 h-5 text-gold"></i>
+              <span class="font-space text-sm">季度评选</span>
+            </div>
+            <div class="flex items-center gap-2 text-gray-300">
+              <i data-lucide="check-circle" class="w-5 h-5 text-gold"></i>
+              <span class="font-space text-sm">线下活动</span>
+            </div>
+            <div class="flex items-center gap-2 text-gray-300">
+              <i data-lucide="check-circle" class="w-5 h-5 text-gold"></i>
+              <span class="font-space text-sm">校友网络</span>
+            </div>
+          </div>
+        </div>
+        <div class="relative">
+          <div class="grid grid-cols-2 gap-4">
+            <div class="space-y-4 mt-8">
+              <img src="https://images.unsplash.com/photo-1542038784456-1ea8e935640e?w=400&q=80" 
+                   alt="摄影活动" 
+                   class="rounded-2xl w-full h-48 object-cover">
+              <img src="https://images.unsplash.com/photo-1554048612-b6a482bc67e5?w=400&q=80" 
+                   alt="摄影活动" 
+                   class="rounded-2xl w-full h-64 object-cover">
+            </div>
+            <div class="space-y-4">
+              <img src="https://images.unsplash.com/photo-1452587925148-ce544e77e70d?w=400&q=80" 
+                   alt="摄影活动" 
+                   class="rounded-2xl w-full h-64 object-cover">
+              <img src="https://images.unsplash.com/photo-1516035069371-29a1b244cc32?w=400&q=80" 
+                   alt="摄影活动" 
+                   class="rounded-2xl w-full h-48 object-cover">
+            </div>
+          </div>
+          <!-- Decorative Element -->
+          <div class="absolute -z-10 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[120%] h-[120%] border border-gold/20 rounded-full"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA Section -->
+  <section class="py-24 px-4 bg-primary relative overflow-hidden">
+    <div class="absolute inset-0 opacity-20">
+      <img src="https://images.unsplash.com/photo-1492691527719-9d1e07e534b4?w=1920&q=80" 
+           alt="Background" 
+           class="w-full h-full object-cover">
+    </div>
+    <div class="absolute inset-0 bg-gradient-to-r from-primary via-primary/95 to-primary/90"></div>
+    
+    <div class="max-w-4xl mx-auto text-center relative z-10">
+      <h2 class="font-archivo font-bold text-4xl md:text-5xl text-white mb-6">
+        准备好展示你的作品了吗？
+      </h2>
+      <p class="text-gray-400 font-archivo text-lg mb-10 max-w-2xl mx-auto">
+        加入复旦MBA摄影协会，与志同道合的伙伴一起探索光影的无限可能。
+      </p>
+      <div class="flex flex-col sm:flex-row gap-4 justify-center">
+        <button onclick="openModal('registerModal')" class="btn-gold rounded-full text-lg px-8 py-4">
+          立即加入
+          <i data-lucide="arrow-right" class="w-5 h-5 inline ml-2"></i>
+        </button>
+        <a href="#gallery" class="btn-primary rounded-full text-lg px-8 py-4 border border-white/20">
+          浏览画廊
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="bg-primary border-t border-white/10 py-12 px-4">
+    <div class="max-w-7xl mx-auto">
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
+        <div class="md:col-span-2">
+          <div class="flex items-center gap-3 mb-4">
+            <div class="w-10 h-10 bg-gradient-to-br from-gold to-gold-light rounded-full flex items-center justify-center">
+              <i data-lucide="aperture" class="w-5 h-5 text-primary"></i>
+            </div>
+            <span class="font-space font-semibold text-white text-lg">FDU MBA PHOTO</span>
+          </div>
+          <p class="text-gray-400 font-archivo text-sm max-w-sm">
+            复旦MBA摄影协会是一个汇聚视觉艺术家的高端社群，致力于用镜头捕捉世界的美好。
+          </p>
+        </div>
+        <div>
+          <h4 class="font-space font-semibold text-white mb-4">快速链接</h4>
+          <ul class="space-y-2">
+            <li><a href="#gallery" class="text-gray-400 hover:text-gold transition-colors text-sm">会员画廊</a></li>
+            <li><a href="#featured" class="text-gray-400 hover:text-gold transition-colors text-sm">协会精选</a></li>
+            <li><a href="#about" class="text-gray-400 hover:text-gold transition-colors text-sm">关于我们</a></li>
+          </ul>
+        </div>
+        <div>
+          <h4 class="font-space font-semibold text-white mb-4">联系我们</h4>
+          <ul class="space-y-2">
+            <li class="flex items-center gap-2 text-gray-400 text-sm">
+              <i data-lucide="mail" class="w-4 h-4"></i>
+              photo@fudanmba.edu.cn
+            </li>
+            <li class="flex items-center gap-2 text-gray-400 text-sm">
+              <i data-lucide="map-pin" class="w-4 h-4"></i>
+              复旦大学管理学院
+            </li>
+          </ul>
+        </div>
+      </div>
+      <div class="border-t border-white/10 pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
+        <p class="text-gray-500 text-sm font-space">
+          © 2024 复旦MBA摄影协会. All rights reserved.
+        </p>
+        <div class="flex gap-4">
+          <a href="#" class="w-10 h-10 rounded-full bg-secondary flex items-center justify-center text-gray-400 hover:text-gold hover:bg-gold/10 transition-all">
+            <i data-lucide="instagram" class="w-5 h-5"></i>
+          </a>
+          <a href="#" class="w-10 h-10 rounded-full bg-secondary flex items-center justify-center text-gray-400 hover:text-gold hover:bg-gold/10 transition-all">
+            <i data-lucide="twitter" class="w-5 h-5"></i>
+          </a>
+          <a href="#" class="w-10 h-10 rounded-full bg-secondary flex items-center justify-center text-gray-400 hover:text-gold hover:bg-gold/10 transition-all">
+            <i data-lucide="linkedin" class="w-5 h-5"></i>
+          </a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Photo Detail Modal -->
+  <div id="photoModal" class="modal">
+    <button onclick="closeModal('photoModal')" class="absolute top-4 right-4 text-white/70 hover:text-white z-10">
+      <i data-lucide="x" class="w-8 h-8"></i>
+    </button>
+    <div class="modal-content flex flex-col lg:flex-row max-w-6xl w-full max-h-[90vh] bg-primary rounded-2xl overflow-hidden">
+      <div class="lg:w-2/3 bg-black flex items-center justify-center">
+        <img id="modalImage" src="" alt="" class="max-w-full max-h-[50vh] lg:max-h-full object-contain">
+      </div>
+      <div class="lg:w-1/3 p-6 lg:p-8 overflow-y-auto">
+        <div class="flex items-center gap-3 mb-4">
+          <img id="modalAvatar" src="" alt="" class="w-12 h-12 rounded-full object-cover">
+          <div>
+            <h3 id="modalAuthor" class="font-space font-semibold text-white"></h3>
+            <p class="text-gray-500 text-sm">2小时前</p>
+          </div>
+        </div>
+        <h2 id="modalTitle" class="font-archivo font-bold text-2xl text-white mb-4"></h2>
+        <p class="text-gray-400 mb-6">用镜头捕捉这一瞬间的美好，光影交错间展现自然的魅力。</p>
+        
+        <div class="flex items-center gap-6 mb-6 pb-6 border-b border-white/10">
+          <button class="flex items-center gap-2 text-gray-400 hover:text-red-500 transition-colors" onclick="toggleLike(this)">
+            <i data-lucide="heart" class="w-6 h-6"></i>
+            <span id="modalLikes" class="font-space"></span>
+          </button>
+          <button class="flex items-center gap-2 text-gray-400 hover:text-white transition-colors">
+            <i data-lucide="message-circle" class="w-6 h-6"></i>
+            <span id="modalComments" class="font-space"></span>
+          </button>
+          <button class="flex items-center gap-2 text-gray-400 hover:text-white transition-colors">
+            <i data-lucide="share-2" class="w-6 h-6"></i>
+          </button>
+        </div>
+        
+        <!-- Comments -->
+        <div class="space-y-4 mb-6">
+          <h4 class="font-space font-semibold text-white text-sm uppercase tracking-wider">评论</h4>
+          <div class="flex gap-3">
+            <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&q=80" class="w-8 h-8 rounded-full object-cover">
+            <div>
+              <p class="text-white text-sm"><span class="font-semibold">@王芳</span> 构图太棒了！光影处理得很到位 👏</p>
+              <p class="text-gray-500 text-xs mt-1">1小时前</p>
+            </div>
+          </div>
+          <div class="flex gap-3">
+            <img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&q=80" class="w-8 h-8 rounded-full object-cover">
+            <div>
+              <p class="text-white text-sm"><span class="font-semibold">@李娜</span> 色调很有质感，学习了！</p>
+              <p class="text-gray-500 text-xs mt-1">30分钟前</p>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Comment Input -->
+        <div class="flex gap-3">
+          <input type="text" placeholder="写下你的评论..." 
+                 class="flex-1 bg-secondary border border-white/10 rounded-full px-4 py-2 text-white text-sm focus:outline-none focus:border-gold">
+          <button class="text-gold font-space text-sm font-semibold">发布</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Login Modal -->
+  <div id="loginModal" class="modal">
+    <div class="modal-content w-full max-w-md bg-primary rounded-2xl p-8 border border-white/10">
+      <div class="text-center mb-8">
+        <div class="w-16 h-16 bg-gradient-to-br from-gold to-gold-light rounded-full flex items-center justify-center mx-auto mb-4">
+          <i data-lucide="aperture" class="w-8 h-8 text-primary"></i>
+        </div>
+        <h2 class="font-archivo font-bold text-2xl text-white">欢迎回来</h2>
+        <p class="text-gray-400 text-sm mt-2">登录以继续探索精彩作品</p>
+      </div>
+      <form class="space-y-4">
+        <div>
+          <label class="block text-gray-400 text-sm mb-2 font-space">邮箱</label>
+          <input type="email" placeholder="your@email.com" 
+                 class="w-full bg-secondary border border-white/10 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-gold transition-colors">
+        </div>
+        <div>
+          <label class="block text-gray-400 text-sm mb-2 font-space">密码</label>
+          <input type="password" placeholder="••••••••" 
+                 class="w-full bg-secondary border border-white/10 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-gold transition-colors">
+        </div>
+        <button type="submit" class="w-full btn-gold rounded-lg py-3 font-semibold">
+          登录
+        </button>
+      </form>
+      <p class="text-center text-gray-400 text-sm mt-6">
+        还没有账号？
+        <button onclick="closeModal('loginModal'); openModal('registerModal')" class="text-gold hover:underline">立即注册</button>
+      </p>
+      <button onclick="closeModal('loginModal')" class="absolute top-4 right-4 text-gray-400 hover:text-white">
+        <i data-lucide="x" class="w-6 h-6"></i>
+      </button>
+    </div>
+  </div>
+
+  <!-- Register Modal -->
+  <div id="registerModal" class="modal">
+    <div class="modal-content w-full max-w-md bg-primary rounded-2xl p-8 border border-white/10">
+      <div class="text-center mb-8">
+        <div class="w-16 h-16 bg-gradient-to-br from-gold to-gold-light rounded-full flex items-center justify-center mx-auto mb-4">
+          <i data-lucide="aperture" class="w-8 h-8 text-primary"></i>
+        </div>
+        <h2 class="font-archivo font-bold text-2xl text-white">加入协会</h2>
+        <p class="text-gray-400 text-sm mt-2">成为会员，开启你的摄影之旅</p>
+      </div>
+      <form class="space-y-4">
+        <div>
+          <label class="block text-gray-400 text-sm mb-2 font-space">姓名</label>
+          <input type="text" placeholder="你的姓名" 
+                 class="w-full bg-secondary border border-white/10 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-gold transition-colors">
+        </div>
+        <div>
+          <label class="block text-gray-400 text-sm mb-2 font-space">邮箱</label>
+          <input type="email" placeholder="your@email.com" 
+                 class="w-full bg-secondary border border-white/10 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-gold transition-colors">
+        </div>
+        <div>
+          <label class="block text-gray-400 text-sm mb-2 font-space">密码</label>
+          <input type="password" placeholder="••••••••" 
+                 class="w-full bg-secondary border border-white/10 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-gold transition-colors">
+        </div>
+        <button type="submit" class="w-full btn-gold rounded-lg py-3 font-semibold">
+          注册
+        </button>
+      </form>
+      <p class="text-center text-gray-400 text-sm mt-6">
+        已有账号？
+        <button onclick="closeModal('registerModal'); openModal('loginModal')" class="text-gold hover:underline">立即登录</button>
+      </p>
+      <button onclick="closeModal('registerModal')" class="absolute top-4 right-4 text-gray-400 hover:text-white">
+        <i data-lucide="x" class="w-6 h-6"></i>
+      </button>
+    </div>
+  </div>
+
+  <!-- Upload Modal -->
+  <div id="uploadModal" class="modal">
+    <div class="modal-content w-full max-w-lg bg-primary rounded-2xl p-8 border border-white/10">
+      <div class="text-center mb-8">
+        <h2 class="font-archivo font-bold text-2xl text-white">上传作品</h2>
+        <p class="text-gray-400 text-sm mt-2">分享你的精彩瞬间</p>
+      </div>
+      
+      <!-- Upload Area -->
+      <div class="border-2 border-dashed border-white/20 rounded-2xl p-12 text-center mb-6 hover:border-gold transition-colors cursor-pointer">
+        <i data-lucide="upload-cloud" class="w-12 h-12 text-gold mx-auto mb-4"></i>
+        <p class="text-white font-space mb-2">点击或拖拽上传照片</p>
+        <p class="text-gray-500 text-sm">支持 JPG, PNG, WEBP (最大 20MB)</p>
+      </div>
+      
+      <form class="space-y-4">
+        <div>
+          <label class="block text-gray-400 text-sm mb-2 font-space">作品标题</label>
+          <input type="text" placeholder="给你的作品起个名字" 
+                 class="w-full bg-secondary border border-white/10 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-gold transition-colors">
+        </div>
+        <div>
+          <label class="block text-gray-400 text-sm mb-2 font-space">分类</label>
+          <select class="w-full bg-secondary border border-white/10 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-gold transition-colors">
+            <option value="">选择分类</option>
+            <option value="landscape">风光</option>
+            <option value="portrait">人像</option>
+            <option value="street">街拍</option>
+            <option value="architecture">建筑</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-gray-400 text-sm mb-2 font-space">描述</label>
+          <textarea placeholder="分享这张照片背后的故事..." rows="3"
+                    class="w-full bg-secondary border border-white/10 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-gold transition-colors resize-none"></textarea>
+        </div>
+        <button type="submit" class="w-full btn-gold rounded-lg py-3 font-semibold">
+          发布作品
+        </button>
+      </form>
+      <button onclick="closeModal('uploadModal')" class="absolute top-4 right-4 text-gray-400 hover:text-white">
+        <i data-lucide="x" class="w-6 h-6"></i>
+      </button>
+    </div>
+  </div>
+
+  <script>
+    // Initialize Lucide Icons
+    lucide.createIcons();
+    
+    // GSAP ScrollTrigger
+    gsap.registerPlugin(ScrollTrigger);
+    
+    // Hero Animations
+    gsap.from('.hero-subtitle', {
+      y: 30,
+      opacity: 0,
+      duration: 1,
+      delay: 0.2,
+      ease: 'power3.out'
+    });
+    
+    gsap.from('.hero-title span', {
+      y: 100,
+      opacity: 0,
+      duration: 1.2,
+      stagger: 0.2,
+      delay: 0.4,
+      ease: 'power3.out'
+    });
+    
+    gsap.from('.hero-desc', {
+      y: 30,
+      opacity: 0,
+      duration: 1,
+      delay: 0.8,
+      ease: 'power3.out'
+    });
+    
+    // Parallax Effect
+    document.querySelectorAll('.parallax-layer').forEach(layer => {
+      const speed = layer.dataset.speed || 0.5;
+      gsap.to(layer, {
+        y: `${speed * 100}%`,
+        ease: 'none',
+        scrollTrigger: {
+          trigger: layer.closest('section'),
+          start: 'top top',
+          end: 'bottom top',
+          scrub: true
+        }
+      });
+    });
+    
+    // Gallery Items Animation
+    gsap.utils.toArray('.gallery-card').forEach((card, i) => {
+      gsap.from(card, {
+        y: 50,
+        opacity: 0,
+        duration: 0.8,
+        delay: i * 0.1,
+        ease: 'power3.out',
+        scrollTrigger: {
+          trigger: card,
+          start: 'top 85%',
+          toggleActions: 'play none none reverse'
+        }
+      });
+    });
+    
+    // Stats Counter Animation
+    const stats = document.querySelectorAll('[data-count]');
+    stats.forEach(stat => {
+      const target = parseInt(stat.dataset.count);
+      gsap.to(stat, {
+        innerText: target,
+        duration: 2,
+        snap: { innerText: 1 },
+        ease: 'power2.out',
+        scrollTrigger: {
+          trigger: stat,
+          start: 'top 80%'
+        }
+      });
+    });
+    
+    // Scroll Progress
+    gsap.to('#scrollProgress', {
+      scaleX: 1,
+      ease: 'none',
+      scrollTrigger: {
+        trigger: document.body,
+        start: 'top top',
+        end: 'bottom bottom',
+        scrub: true
+      }
+    });
+    
+    // Modal Functions
+    function openModal(modalId) {
+      document.getElementById(modalId).classList.add('active');
+      document.body.style.overflow = 'hidden';
+    }
+    
+    function closeModal(modalId) {
+      document.getElementById(modalId).classList.remove('active');
+      document.body.style.overflow = '';
+    }
+    
+    // Photo Modal with Data
+    function openPhotoModal(element) {
+      const img = element.querySelector('img');
+      const title = element.querySelector('h3')?.textContent || '作品标题';
+      const author = element.querySelector('.font-space')?.textContent || '@作者';
+      const likes = element.querySelector('[data-likes]')?.textContent || '0';
+      const comments = element.querySelector('[data-comments]')?.textContent || '0';
+      const avatar = element.querySelector('.overlay img')?.src || 'https://via.placeholder.com/100';
+      
+      document.getElementById('modalImage').src = img.src;
+      document.getElementById('modalTitle').textContent = title;
+      document.getElementById('modalAuthor').textContent = author;
+      document.getElementById('modalLikes').textContent = likes;
+      document.getElementById('modalComments').textContent = comments;
+      document.getElementById('modalAvatar').src = avatar;
+      
+      openModal('photoModal');
+    }
+    
+    // Like Animation
+    function toggleLike(btn) {
+      const icon = btn.querySelector('svg');
+      if (btn.classList.contains('text-red-500')) {
+        btn.classList.remove('text-red-500');
+        btn.classList.add('text-gray-400');
+        icon.setAttribute('fill', 'none');
+      } else {
+        btn.classList.add('text-red-500');
+        btn.classList.remove('text-gray-400');
+        icon.setAttribute('fill', 'currentColor');
+        icon.classList.add('like-animation');
+        setTimeout(() => icon.classList.remove('like-animation'), 300);
+      }
+    }
+    
+    // Mobile Menu
+    function toggleMobileMenu() {
+      const menu = document.getElementById('mobileMenu');
+      menu.classList.toggle('translate-x-full');
+    }
+    
+    // Featured Tabs
+    document.querySelectorAll('.featured-tab').forEach(tab => {
+      tab.addEventListener('click', function() {
+        document.querySelectorAll('.featured-tab').forEach(t => {
+          t.classList.remove('bg-gold', 'text-primary');
+          t.classList.add('bg-secondary', 'text-gray-300');
+        });
+        this.classList.remove('bg-secondary', 'text-gray-300');
+        this.classList.add('bg-gold', 'text-primary');
+      });
+    });
+    
+    // Gallery Filter
+    document.querySelectorAll('.gallery-filter').forEach(filter => {
+      filter.addEventListener('click', function() {
+        document.querySelectorAll('.gallery-filter').forEach(f => {
+          f.classList.remove('bg-gold', 'text-primary');
+          f.classList.add('bg-secondary', 'text-gray-300');
+        });
+        this.classList.remove('bg-secondary', 'text-gray-300');
+        this.classList.add('bg-gold', 'text-primary');
+        
+        const category = this.dataset.filter;
+        document.querySelectorAll('.masonry-item').forEach(item => {
+          if (category === 'all' || item.dataset.category === category) {
+            item.style.display = 'block';
+          } else {
+            item.style.display = 'none';
+          }
+        });
+      });
+    });
+    
+    // Close modal on outside click
+    document.querySelectorAll('.modal').forEach(modal => {
+      modal.addEventListener('click', function(e) {
+        if (e.target === this) {
+          closeModal(this.id);
+        }
+      });
+    });
+    
+    // Smooth Scroll
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+      anchor.addEventListener('click', function(e) {
+        e.preventDefault();
+        const target = document.querySelector(this.getAttribute('href'));
+        if (target) {
+          target.scrollIntoView({
+            behavior: 'smooth',
+            block: 'start'
+          });
+        }
+      });
+    });
+  </script>
+</body>
+</html>
